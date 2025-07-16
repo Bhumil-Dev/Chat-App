@@ -10,8 +10,12 @@ import { Server } from 'socket.io'
 const app = express()
 const server = http.createServer(app)
 
+// ✅ SOCKET.IO CORS (for client connection)
 export const io = new Server(server, {
-  cors: { origin: '*' }
+  cors: {
+    origin: ['https://bhumil-chatapp.netlify.app'], // ⚠️ Updated for production only
+    credentials: true
+  }
 })
 
 export const userSocketMap = {}
@@ -31,16 +35,21 @@ io.on('connection', (socket) => {
   })
 })
 
-// Middleware setup
+// ✅ Middleware
 app.use(express.json({ limit: '4mb' }))
-app.use(cors())
 
-// Routes
+// ✅ CORS for API (main fix)
+app.use(cors({
+  origin: ['https://bhumil-chatapp.netlify.app'], // ✅ Allow frontend origin
+  credentials: true
+}))
+
+// ✅ Routes
 app.use('/api/status', (req, res) => res.send('server is live'))
 app.use('/api/auth', userRouter)
 app.use('/api/messages', messageRouter)
 
-// Connect to DB and start server
+// ✅ DB + Server Start
 await connectDB()
 
 const PORT = process.env.PORT || 5000
